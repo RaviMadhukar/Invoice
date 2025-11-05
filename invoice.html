@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Invoice</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+  .invoice-form {
+    max-width: 750px;
+    margin: auto;
+  }
+  h1 {
+    text-align: center;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+  }
+  input, textarea, select {
+    width: 100%;
+    padding: 6px;
+    margin-top: 4px;
+    box-sizing: border-box;
+  }
+  .container {
+    display: flex;
+    justify-content: space-between;
+  }
+  .box {
+    width: 31%;
+  }
+  .box label {
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  table, th, td {
+    border: 1px solid #999;
+  }
+  th, td {
+    padding: 8px;
+    text-align: left;
+  }
+  .add-item-btn, .print-btn {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 16px;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+  }
+  .removeBtn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="invoice-form">
+  <h1>Invoice</h1>
+
+  <div class="container">
+    <div class="box">
+      <label>Company Name</label>
+      <input type="text" id="companyName" placeholder="Company Name" />
+      <label for="companyAddress">Address</label>
+      <textarea id="companyAddress" rows="2" placeholder="Company Address"></textarea>
+      <label for="companyGSTIN">GSTIN</label>
+      <input type="text" id="companyGSTIN" placeholder="Company GSTIN" />
+      <label for="companyState">State Name</label>
+      <input type="text" id="companyState" placeholder="Company State" />
+      <label for="companyContact">Contact</label>
+      <input type="text" id="companyContact" placeholder="Company Contact" />
+    </div>
+    <div class="box">
+      <label>Bill To</label>
+      <input type="text" id="billToName" placeholder="Name" />
+      <label for="billToAddress">Address</label>
+      <textarea id="billToAddress" rows="2" placeholder="Billing Address"></textarea>
+      <label for="billToGSTIN">GSTIN</label>
+      <input type="text" id="billToGSTIN" placeholder="Billing GSTIN" />
+      <label for="billToState">State Name</label>
+      <input type="text" id="billToState" placeholder="Billing State" />
+      <label for="billToContact">Contact</label>
+      <input type="text" id="billToContact" placeholder="Billing Contact" />
+    </div>
+    <div class="box">
+      <label>Ship To</label>
+      <input type="text" id="shipToName" placeholder="Name" />
+      <label for="shipToAddress">Address</label>
+      <textarea id="shipToAddress" rows="2" placeholder="Shipping Address"></textarea>
+      <label for="shipToGSTIN">GSTIN</label>
+      <input type="text" id="shipToGSTIN" placeholder="Shipping GSTIN" />
+      <label for="shipToState">State Name</label>
+      <input type="text" id="shipToState" placeholder="Shipping State" />
+      <label for="shipToContact">Contact</label>
+      <input type="text" id="shipToContact" placeholder="Shipping Contact" />
+    </div>
+  </div>
+
+  <label for="invoiceNumber">Invoice Number:</label>
+  <input type="text" id="invoiceNumber" />
+
+  <label for="date">Date:</label>
+  <input type="date" id="date" />
+
+  <h3>Items</h3>
+  <table id="itemsTable">
+    <thead>
+      <tr>
+        <th>S.No.</th>
+        <th>Description of Goods</th>
+        <th>HSN</th>
+        <th>Quantity</th>
+        <th>Rate</th>
+        <th>IGST %</th>
+        <th>Amount (Incl. IGST)</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="itemsBody">
+      <tr>
+        <td class="sno">1</td>
+        <td><input type="text" class="desc" placeholder="Description" /></td>
+        <td><input type="text" class="hsn" placeholder="HSN" /></td>
+        <td><input type="number" class="qty" value="1" min="1" /></td>
+        <td><input type="number" class="rate" value="0" min="0" step="0.01" /></td>
+        <td>
+          <select class="igst">
+            <option value="5">5%</option>
+            <option value="18">18%</option>
+            <option value="28">28%</option>
+          </select>
+        </td>
+        <td class="amount">0.00</td>
+        <td><button class="removeBtn">Remove</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <button class="add-item-btn" id="addItemBtn">Add Item</button>
+
+  <h3>Total: $<span id="total">0.00</span></h3>
+
+  <button class="print-btn" id="printBtn">Print Invoice</button>
+</div>
+
+<script>
+function updateItemAmount(row) {
+  const qty = parseFloat(row.querySelector('.qty').value) || 0;
+  const rate = parseFloat(row.querySelector('.rate').value) || 0;
+  const igstPercent = parseFloat(row.querySelector('.igst').value) || 0;
+  const baseAmount = qty * rate;
+  const taxAmount = (baseAmount * igstPercent) / 100;
+  const totalAmount = baseAmount + taxAmount;
+  row.querySelector('.amount').textContent = totalAmount.toFixed(2);
+  updateTotal();
+}
+
+function updateTotal() {
+  let total = 0;
+  document.querySelectorAll('.amount').forEach(td => {
+    total += parseFloat(td.textContent);
+  });
+  document.getElementById('total').textContent = total.toFixed(2);
+}
+
+function updateSNOs() {
+  const rows = document.querySelectorAll('#itemsBody tr');
+  rows.forEach((row, index) => {
+    row.querySelector('.sno').textContent = index + 1;
+  });
+}
+
+function addListeners(row) {
+  row.querySelector('.qty').addEventListener('input', () => updateItemAmount(row));
+  row.querySelector('.rate').addEventListener('input', () => updateItemAmount(row));
+  row.querySelector('.igst').addEventListener('change', () => updateItemAmount(row));
+  row.querySelector('.removeBtn').addEventListener('click', () => {
+    row.remove();
+    updateSNOs();
+    updateTotal();
+  });
+}
+
+document.getElementById('addItemBtn').addEventListener('click', () => {
+  const tbody = document.getElementById('itemsBody');
+  const newRow = document.createElement('tr');
+  newRow.innerHTML = `
+    <td class="sno"></td>
+    <td><input type="text" class="desc" placeholder="Description" /></td>
+    <td><input type="text" class="hsn" placeholder="HSN" /></td>
+    <td><input type="number" class="qty" value="1" min="1" /></td>
+    <td><input type="number" class="rate" value="0" min="0" step="0.01" /></td>
+    <td>
+      <select class="igst">
+        <option value="5">5%</option>
+        <option value="18">18%</option>
+        <option value="28">28%</option>
+      </select>
+    </td>
+    <td class="amount">0.00</td>
+    <td><button class="removeBtn">Remove</button></td>
+  `;
+  tbody.appendChild(newRow);
+  addListeners(newRow);
+  updateSNOs();
+  updateItemAmount(newRow);
+});
+
+document.querySelectorAll('#itemsBody tr').forEach(row => {
+  addListeners(row);
+  updateSNOs();
+  updateItemAmount(row);
+});
+
+document.getElementById('printBtn').addEventListener('click', () => {
+  const companyName = document.getElementById('companyName').value;
+  const companyAddress = document.getElementById('companyAddress').value;
+  const companyGSTIN = document.getElementById('companyGSTIN').value;
+  const companyState = document.getElementById('companyState').value;
+  const companyContact = document.getElementById('companyContact').value;
+
+  const billToName = document.getElementById('billToName').value;
+  const billToAddress = document.getElementById('billToAddress').value;
+  const billToGSTIN = document.getElementById('billToGSTIN').value;
+  const billToState = document.getElementById('billToState').value;
+  const billToContact = document.getElementById('billToContact').value;
+
+  const shipToName = document.getElementById('shipToName').value;
+  const shipToAddress = document.getElementById('shipToAddress').value;
+  const shipToGSTIN = document.getElementById('shipToGSTIN').value;
+  const shipToState = document.getElementById('shipToState').value;
+  const shipToContact = document.getElementById('shipToContact').value;
+
+  const invoiceNumber = document.getElementById('invoiceNumber').value;
+  const date = document.getElementById('date').value;
+  const rows = document.querySelectorAll('#itemsBody tr');
+
+  let invoiceHTML = `
+    <h2>Invoice</h2>
+    <table style="width: 100%; border-collapse: collapse;" border="1">
+      <tr>
+        <th>Company Name</th>
+        <th>Bill To</th>
+        <th>Ship To</th>
+      </tr>
+      <tr>
+        <td>
+          ${companyName}<br>
+          <strong>Address:</strong> ${companyAddress.replace(/\n/g, '<br>')}<br>
+          <strong>GSTIN:</strong> ${companyGSTIN}<br>
+          <strong>State Name:</strong> ${companyState}<br>
+          <strong>Contact:</strong> ${companyContact}
+        </td>
+        <td>
+          <strong>Name:</strong> ${billToName}<br>
+          ${billToAddress.replace(/\n/g, '<br>')}<br>
+          <strong>GSTIN:</strong> ${billToGSTIN}<br>
+          <strong>State Name:</strong> ${billToState}<br>
+          <strong>Contact:</strong> ${billToContact}
+        </td>
+        <td>
+          <strong>Name:</strong> ${shipToName}<br>
+          ${shipToAddress.replace(/\n/g, '<br>')}<br>
+          <strong>GSTIN:</strong> ${shipToGSTIN}<br>
+          <strong>State Name:</strong> ${shipToState}<br>
+          <strong>Contact:</strong> ${shipToContact}
+        </td>
+      </tr>
+    </table>
+    <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
+    <p><strong>Date:</strong> ${date}</p>
+    <table style="width: 100%;border-collapse: collapse;" border="1">
+      <thead>
+        <tr>
+          <th>S.No.</th>
+          <th>Description of Goods</th>
+          <th>HSN</th>
+          <th>Quantity</th>
+          <th>Rate</th>
+          <th>IGST %</th>
+          <th>Amount (Incl. IGST)</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  rows.forEach((row, index) => {
+    const desc = row.querySelector('.desc').value;
+    const hsn = row.querySelector('.hsn').value;
+    const qty = row.querySelector('.qty').value;
+    const rate = row.querySelector('.rate').value;
+    const igst = row.querySelector('.igst').value;
+    const amount = row.querySelector('.amount').textContent;
+    invoiceHTML += `<tr>
+      <td>${index + 1}</td>
+      <td>${desc}</td>
+      <td>${hsn}</td>
+      <td>${qty}</td>
+      <td>$${parseFloat(rate).toFixed(2)}</td>
+      <td>${igst}%</td>
+      <td>$${amount}</td>
+    </tr>`;
+  });
+
+  invoiceHTML += `
+      </tbody>
+    </table>
+    <h3>Total: $${document.getElementById('total').textContent}</h3>
+  `;
+
+  const printWindow = window.open('', '', 'width=900,height=600');
+  printWindow.document.write(invoiceHTML);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
+});
+</script>
+
+</body>
+</html>
